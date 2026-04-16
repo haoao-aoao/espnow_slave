@@ -1,8 +1,10 @@
-idf_component_register(SRCS "main.c" "LED/src/mled.c"
+idf_component_register(SRCS "main.c" "LED/src/mled.c" "MOTOR/src/motor.c" "BATTERY/src/battery.c"
                     PRIV_REQUIRES 
                     nvs_flash 
                     esp_event 
                     esp_netif 
                     esp_wifi
                     esp_driver_gpio
-                    INCLUDE_DIRS "." "LED/inc")
+                    esp_driver_ledc
+                    esp_adc
+                    INCLUDE_DIRS "." "LED/inc" "MOTOR/inc" "BATTERY/inc")
