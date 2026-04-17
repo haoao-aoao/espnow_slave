@@ -1,5 +1,58 @@
 #include "motor.h"
 
+const static char *TAG = "MOTOR_TASK";
+
+static motor_obj_t motor = {
+    .on_angle = MOTOR_DEFAULT_ON_ANGLE,
+    .off_angle = MOTOR_DEFAULT_OFF_ANGLE
+};
+static TaskHandle_t motor_task_handle = NULL;
+static QueueHandle_t motor_evt_queue = NULL;
+
+static uint32_t motor_evt_send(motor_event_data_t evt)
+{
+    return xQueueSend(motor_evt_queue, &evt, portMAX_DELAY);
+}
+
+void motor_evt_set_angle(uint8_t on_angle, uint8_t off_angle)
+{
+    motor_event_data_t evt = {
+        .evt = MOTOR_EVT_SET_ANGLE,
+        .on_angle = on_angle,
+        .off_angle = off_angle
+    };
+
+    motor_evt_send(evt);
+}
+
+void motor_evt_move_to_angle(uint8_t angle)
+{
+    motor_event_data_t evt = {
+        .evt = MOTOR_EVT_MOVE_TO_ANGLE,
+        .angle = angle
+    };
+
+    motor_evt_send(evt);
+}
+
+void motor_evt_on(void)
+{
+    motor_event_data_t evt = {
+        .evt = MOTOR_EVT_MOVE_ON
+    };
+
+    motor_evt_send(evt);
+}
+
+void motor_evt_off(void)
+{
+    motor_event_data_t evt = {
+        .evt = MOTOR_EVT_MOVE_OFF
+    };
+
+    motor_evt_send(evt);
+}
+
 /**
  * @brief 初始化舵机控制
  * @param pin 舵机控制引脚
@@ -67,7 +120,13 @@ esp_err_t motor_set_angle(ledc_channel_t channel, uint8_t angle)
     duty = (duty > 512) ? 512 : duty;  // 最大占空比（2.5ms）
     
     // 设置占空比
-    return ledc_set_duty(LEDC_LOW_SPEED_MODE, channel, duty);
+    esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE, channel, duty);
+    if (err != ESP_OK) {
+        return err;
+    }
+    
+    // 应用占空比更改
+    return ledc_update_duty(LEDC_LOW_SPEED_MODE, channel);
 }
 
 /**
@@ -79,4 +138,56 @@ esp_err_t motor_deinit(ledc_channel_t channel)
 {
     // 停止LEDC通道
     return ledc_stop(LEDC_LOW_SPEED_MODE, channel, 0);
+}
+
+static void motor_task(void *pvParameters)
+{
+    motor_event_data_t evt;
+
+    while (1) 
+    {
+        if (xQueueReceive(motor_evt_queue, (motor_event_data_t *)&evt, portMAX_DELAY) == pdTRUE) 
+        {
+            switch (evt.evt)
+            {
+                case MOTOR_EVT_SET_ANGLE:
+                {
+                    motor.on_angle = evt.on_angle;
+                    motor.off_angle = evt.off_angle;
+                }
+                break;
+
+                case MOTOR_EVT_MOVE_TO_ANGLE:
+                {
+                    motor_set_angle(LEDC_CHANNEL_0, evt.angle);
+                }
+                break;
+
+                case MOTOR_EVT_MOVE_ON:
+                {
+                    motor_set_angle(LEDC_CHANNEL_0, motor.on_angle);
+                }
+                break;
+
+                case MOTOR_EVT_MOVE_OFF:
+                {
+                    motor_set_angle(LEDC_CHANNEL_0, motor.off_angle);
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
+
+esp_err_t motor_task_init(void)
+{
+    motor_init(MOTOR_PWM_PIN, LEDC_CHANNEL_0, 50);
+    motor_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+
+    xTaskCreate(motor_task, "motor_task", 2048, NULL, 10, &motor_task_handle);
+
+    return ESP_OK;
 }

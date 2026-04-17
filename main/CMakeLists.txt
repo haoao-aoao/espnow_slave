@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "LED/src/mled.c" "MOTOR/src/motor.c" "BATTERY/src/battery.c"
+idf_component_register(SRCS "main.c" "LED/src/mled.c" "MOTOR/src/motor.c" "BATTERY/src/battery.c" "BLE/src/ble_app.c" "BLE/src/gatt_svc.c" "BLE/src/gap.c" "BLE/src/heart_rate_mock.c"
                     PRIV_REQUIRES 
                     nvs_flash 
                     esp_event 
@@ -7,4 +7,5 @@ idf_component_register(SRCS "main.c" "LED/src/mled.c" "MOTOR/src/motor.c" "BATTE
                     esp_driver_gpio
                     esp_driver_ledc
                     esp_adc
-                    INCLUDE_DIRS "." "LED/inc" "MOTOR/inc" "BATTERY/inc")
+                    bt
+                    INCLUDE_DIRS "." "LED/inc" "MOTOR/inc" "BATTERY/inc" "BLE/inc")
