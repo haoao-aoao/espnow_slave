@@ -185,7 +185,7 @@ static void motor_task(void *pvParameters)
 esp_err_t motor_task_init(void)
 {
     motor_init(MOTOR_PWM_PIN, LEDC_CHANNEL_0, 50);
-    motor_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    motor_evt_queue = xQueueCreate(10, sizeof(motor_event_data_t));
 
     xTaskCreate(motor_task, "motor_task", 2048, NULL, 10, &motor_task_handle);
 

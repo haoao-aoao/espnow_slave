@@ -3,6 +3,9 @@
 #include "battery.h"
 #include "motor.h"
 #include "ble_app.h"
+#include "mdata.h"
+
+
 
 void app_main(void)
 {
@@ -14,4 +17,5 @@ void app_main(void)
     mled_task_init();
     battery_task_init(1000 * 10);
     motor_task_init();
+    data_task_init();
 }
