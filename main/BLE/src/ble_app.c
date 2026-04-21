@@ -7,8 +7,6 @@
 #include "common.h"
 #include "gap.h"
 #include "gatt_svc.h"
-#include "heart_rate.h"
-// #include "led.h"
 
 /* Library function declarations */
 void ble_store_config_init(void);
@@ -57,50 +55,26 @@ static void nimble_host_task(void *param) {
     vTaskDelete(NULL);
 }
 
-static void heart_rate_task(void *param) {
-    /* Task entry log */
-    ESP_LOGI(TAG, "heart rate task has been started!");
-
-    /* Loop forever */
-    while (1) {
-        /* Update heart rate value every 1 second */
-        update_heart_rate();
-        ESP_LOGI(TAG, "heart rate updated to %d", get_heart_rate());
-
-        /* Send heart rate indication if enabled */
-        send_heart_rate_indication();
-
-        /* Sleep */
-        vTaskDelay(HEART_RATE_TASK_PERIOD);
-    }
-
-    /* Clean up at exit */
-    vTaskDelete(NULL);
-}
-
 void ble_app_init(void) 
 {
     /* Local variables */
     int rc = 0;
     esp_err_t ret;
 
-    /* LED initialization */
-    // led_init();
-
     /*
      * NVS flash initialization
      * Dependency of BLE stack to store configurations
      */
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
-        ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "failed to initialize nvs flash, error code: %d ", ret);
-        return;
-    }
+    // ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+    //     ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     ret = nvs_flash_init();
+    // }
+    // if (ret != ESP_OK) {
+    //     ESP_LOGE(TAG, "failed to initialize nvs flash, error code: %d ", ret);
+    //     return;
+    // }
 
     /* NimBLE stack initialization */
     ret = nimble_port_init();
@@ -131,6 +105,5 @@ void ble_app_init(void)
 
     /* Start NimBLE host task thread and return */
     xTaskCreate(nimble_host_task, "NimBLE Host", 4*1024, NULL, 5, NULL);
-    xTaskCreate(heart_rate_task, "Heart Rate", 4*1024, NULL, 5, NULL);
     return;
 }

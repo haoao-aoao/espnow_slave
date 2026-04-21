@@ -9,7 +9,7 @@
 
 void app_main(void)
 {
-    printf("app start\r\n");
+    printf("app start, version: %s\r\n", SW_VERSION);
     printf("Minimum free heap size: %"PRIu32" bytes\r\n", esp_get_minimum_free_heap_size());
 
     ble_app_init();

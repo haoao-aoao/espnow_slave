@@ -1,0 +1,5 @@
+# Name,   Type, SubType, Offset,  Size, Flags
+# ESP32-C3 单固件 无OTA 标准分区表 (4MB Flash)
+nvs,      data, nvs,     0x9000,  0x6000,
+phy_init, data, phy,     0xf000,  0x1000,
+factory,  app,  factory, 0x10000, 3M,
