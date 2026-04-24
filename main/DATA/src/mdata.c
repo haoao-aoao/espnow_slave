@@ -1,5 +1,6 @@
 #include "mdata.h"
 #include "motor.h"
+#include "device.h"
 
 const static char *TAG = "DATA_TASK";
 static TaskHandle_t data_task_handle = NULL;
@@ -62,42 +63,49 @@ static int data_hanle(uint8_t *data, uint8_t len)
         {
             adv_interval = data[2] << 8 | data[3];
             ESP_LOGI(TAG, "adv_interval: %d", adv_interval);
+            set_device_adv_interval(adv_interval);
         }
         
         if( data[4] != 0xFF )
         {
             led_enable = data[4];
             ESP_LOGI(TAG, "led_enable: %d", led_enable);
+            set_device_led_enable(led_enable);
         }
 
         if( data[5] != 0xFF )
         {
             led_action = data[5];
             ESP_LOGI(TAG, "led_action: %d", led_action);
+            set_device_led_evt(led_action);
         }
         
         if( data[6] != 0xFF )
         {
             floor = data[6];
             ESP_LOGI(TAG, "floor: %d", floor);
+            set_device_floor(floor);
         }
         
         if( data[7] != 0xFF )
         {
             switch_no = data[7];
             ESP_LOGI(TAG, "switch_no: %d", switch_no);
+            set_device_switch_no(switch_no);
         }
 
         if( data[8] != 0xFF )
         {
             motor_on_angle = data[8];
             ESP_LOGI(TAG, "motor_on_angle: %d", motor_on_angle);
+            set_device_motor_on_angle(motor_on_angle);
         }
 
         if( data[9] != 0xFF )
         {
             motor_off_angle = data[9];
-            ESP_LOGI(TAG, "motor_off_angle: %d", motor_off_angle);  
+            ESP_LOGI(TAG, "motor_off_angle: %d", motor_off_angle);
+            set_device_motor_off_angle(motor_off_angle);
         }
 
         if( data[10] != 0xFF )
@@ -112,7 +120,10 @@ static int data_hanle(uint8_t *data, uint8_t len)
             {
                 motor_evt_off();
             }
+            set_device_motor_onOff(motor_onoff);
         }
+
+        update_device_parm();
     }
 
     return ret;

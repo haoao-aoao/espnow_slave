@@ -1,5 +1,7 @@
 #include "device.h"
 
+#define TAG "DEVICE"
+
 static device_parm_t device_parm = {0};
 
 static uint8_t CalculateChecksum(const void *data, uint32_t length)
@@ -193,6 +195,20 @@ static void init_device_parm(void)
         set_default_device_parm();
         save_device_parm();
     }
+
+    ESP_LOGI(TAG, "================ device_parm ====================");
+    ESP_LOGI(TAG, "device_type: %d", get_device_device_type());
+    ESP_LOGI(TAG, "device_state: %d", get_device_device_state());
+    ESP_LOGI(TAG, "wireless_type: %d", get_device_wireless_type());
+    ESP_LOGI(TAG, "adv_interval: %d", get_device_adv_interval());
+    ESP_LOGI(TAG, "led_enable: %d", get_device_led_enable());
+    ESP_LOGI(TAG, "led_evt: %d", get_device_led_evt());
+    ESP_LOGI(TAG, "floor: %d", get_device_floor());
+    ESP_LOGI(TAG, "switch_no: %d", get_device_switch_no());
+    ESP_LOGI(TAG, "motor_on_angle: %d", get_device_motor_on_angle());
+    ESP_LOGI(TAG, "motor_off_angle: %d", get_device_motor_off_angle());
+    ESP_LOGI(TAG, "motor_onOff: %d", get_device_motor_onOff());
+    ESP_LOGI(TAG, "==================== END ========================");
 }
 
 void update_device_parm(void)

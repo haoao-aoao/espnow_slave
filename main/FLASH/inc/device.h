@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#define TAG "DEVICE"
+
 
 /**
  * @brief 定义设备模式

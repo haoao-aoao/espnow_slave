@@ -32,6 +32,6 @@
 
 /* Defines */
 #define TAG "GATT_Server"
-#define DEVICE_NAME "haoao_switch"
+#define DEVICE_NAME "H-SWITCH"
 
 #endif // COMMON_H
