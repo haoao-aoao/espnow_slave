@@ -5,6 +5,7 @@
 const static char *TAG = "DATA_TASK";
 static TaskHandle_t data_task_handle = NULL;
 static QueueHandle_t data_evt_queue = NULL;
+static manu_data_t manufacturer_data = {0};
 
 /**
  * @brief 计算数据的累加和
@@ -34,6 +35,29 @@ void data_evt_send(uint8_t source, uint8_t *data, uint8_t len)
     xQueueSend(data_evt_queue, &evt, portMAX_DELAY);
 }
 
+void update_manufacturer_data(void)
+{
+    uint8_t device_status = (get_device_device_state() << 0) | 
+                            (get_device_motor_onOff() << 1) | 
+                            (get_device_led_enable() << 3);
+
+    manufacturer_data.flag = MDATA_FLAG;
+    manufacturer_data.protocol_version = MDATA_PROTOCOL_VERSION;
+    manufacturer_data.adv_interval = get_device_adv_interval();
+    manufacturer_data.battery_level = 0;
+    manufacturer_data.floor_number = get_device_floor();
+    manufacturer_data.switch_index = get_device_switch_no();
+    manufacturer_data.device_status = device_status;
+    manufacturer_data.servo_open_angle = get_device_motor_on_angle();
+    manufacturer_data.servo_close_angle = get_device_motor_off_angle();
+    manufacturer_data.indicator_task = get_device_led_evt();
+}
+
+manu_data_t *get_manufacturer_data(void)
+{
+    return &manufacturer_data;
+}
+
 static int data_hanle(uint8_t *data, uint8_t len)
 {
     int ret = -1;
@@ -47,7 +71,7 @@ static int data_hanle(uint8_t *data, uint8_t len)
         flag2 = data[1];
         checksum = data[len - 1];
 
-        if(flag1 != DATA_FLAG || flag2 != DATA_FLAG)
+        if(flag1 != MDATA_FLAG || flag2 != MDATA_FLAG)
         {
             ESP_LOGE(TAG, "invalid data flag");
             return ret;
@@ -160,6 +184,8 @@ static void data_task(void *param)
 
 void data_task_init(void)
 {
+    update_manufacturer_data();
+
     data_evt_queue = xQueueCreate(10, sizeof(data_event_data_t));
     xTaskCreate(data_task, "data_task", 2048, NULL, 10, &data_task_handle);
 }

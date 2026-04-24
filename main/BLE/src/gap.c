@@ -7,6 +7,7 @@
 #include "gap.h"
 #include "common.h"
 #include "gatt_svc.h"
+#include "mdata.h"
 
 /* Private function declarations */
 inline static void format_addr(char *addr_str, uint8_t addr[]);
@@ -68,17 +69,23 @@ static void start_advertising(void) {
     adv_fields.name_len = strlen(name);
     adv_fields.name_is_complete = 1;
 
+    /* Set Manufacturer specific data */
+    manu_data_t *manu_data = get_manufacturer_data();
+
+    adv_fields.mfg_data = (uint8_t *)manu_data;
+    adv_fields.mfg_data_len = sizeof(manu_data_t);
+
     /* Set device tx power */
-    adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-    adv_fields.tx_pwr_lvl_is_present = 1;
+    // adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
+    // adv_fields.tx_pwr_lvl_is_present = 1;
 
     /* Set device appearance */
-    adv_fields.appearance = BLE_GAP_APPEARANCE_GENERIC_TAG;
-    adv_fields.appearance_is_present = 1;
+    // adv_fields.appearance = BLE_GAP_APPEARANCE_GENERIC_TAG;
+    // adv_fields.appearance_is_present = 1;
 
     /* Set device LE role */
-    adv_fields.le_role = BLE_GAP_LE_ROLE_PERIPHERAL;
-    adv_fields.le_role_is_present = 1;
+    // adv_fields.le_role = BLE_GAP_LE_ROLE_PERIPHERAL;
+    // adv_fields.le_role_is_present = 1;
 
     /* Set advertisement fields */
     rc = ble_gap_adv_set_fields(&adv_fields);
