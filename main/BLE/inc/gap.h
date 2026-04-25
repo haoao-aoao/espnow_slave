@@ -17,6 +17,7 @@
 #define BLE_GAP_LE_ROLE_PERIPHERAL 0x00
 
 /* Public function declarations */
+void update_advertising_data(void);
 void adv_init(void);
 int gap_init(void);
 

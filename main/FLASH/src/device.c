@@ -182,13 +182,10 @@ static void load_device_parm(void)
 static void init_device_parm(void)
 {
     uint8_t device_state = get_device_device_state();
-    if (device_state == FACTORY_SETTING)
+
+    if (device_state == NORMAL_MODE)
     {
-        // set_default_device_parm();
-    }
-    else if (device_state == NORMAL_MODE)
-    {
-        // load_device_parm();
+        load_device_parm();
     }
     else
     {

@@ -1,4 +1,5 @@
 #include "motor.h"
+#include "device.h"
 
 const static char *TAG = "MOTOR_TASK";
 
@@ -115,7 +116,8 @@ esp_err_t motor_set_angle(ledc_channel_t channel, uint8_t angle)
     // 计算占空比
     // SG90舵机的PWM信号周期为20ms，高电平时间为0.5ms-2.5ms
     // 对应角度0-180度
-    uint32_t duty = (angle * 4095 / 180) * 2.5 / 20;
+    // 正确的计算公式：duty = (0.5ms + (angle * 2ms / 180)) / 20ms * 4095
+    uint32_t duty = (uint32_t)((0.5 + (angle * 2.0 / 180.0)) / 20.0 * 4095.0);
     duty = (duty < 102) ? 102 : duty;  // 最小占空比（0.5ms）
     duty = (duty > 512) ? 512 : duty;  // 最大占空比（2.5ms）
     
@@ -152,8 +154,11 @@ static void motor_task(void *pvParameters)
             {
                 case MOTOR_EVT_SET_ANGLE:
                 {
-                    motor.on_angle = evt.on_angle;
-                    motor.off_angle = evt.off_angle;
+                    if(evt.on_angle != 0xFF)
+                        motor.on_angle = evt.on_angle;
+                    
+                    if(evt.off_angle != 0xFF)
+                        motor.off_angle = evt.off_angle;
                 }
                 break;
 
@@ -184,7 +189,10 @@ static void motor_task(void *pvParameters)
 
 esp_err_t motor_task_init(void)
 {
+    motor.off_angle = get_device_motor_off_angle();
+    motor.on_angle = get_device_motor_on_angle();
     motor_init(MOTOR_PWM_PIN, LEDC_CHANNEL_0, 50);
+
     motor_evt_queue = xQueueCreate(10, sizeof(motor_event_data_t));
 
     xTaskCreate(motor_task, "motor_task", 2048, NULL, 10, &motor_task_handle);

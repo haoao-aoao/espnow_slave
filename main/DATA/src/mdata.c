@@ -1,6 +1,7 @@
 #include "mdata.h"
 #include "motor.h"
 #include "device.h"
+#include "gap.h"
 
 const static char *TAG = "DATA_TASK";
 static TaskHandle_t data_task_handle = NULL;
@@ -55,6 +56,8 @@ void update_manufacturer_data(void)
 
 manu_data_t *get_manufacturer_data(void)
 {
+    update_manufacturer_data();
+
     return &manufacturer_data;
 }
 
@@ -81,6 +84,11 @@ static int data_hanle(uint8_t *data, uint8_t len)
         {
             ESP_LOGE(TAG, "invalid checksum 0x%02X, expected 0x%02X", checksum, calculate_checksum(data+2, len-2-1));
             return ret;
+        }
+
+        if(get_device_device_state() == FACTORY_SETTING)
+        {
+            set_device_device_state(NORMAL_MODE);
         }
 
         if(data[2] != 0xFF && data[3] != 0xFF)
@@ -122,6 +130,7 @@ static int data_hanle(uint8_t *data, uint8_t len)
         {
             motor_on_angle = data[8];
             ESP_LOGI(TAG, "motor_on_angle: %d", motor_on_angle);
+            motor_evt_set_angle(motor_on_angle, 0xFF);
             set_device_motor_on_angle(motor_on_angle);
         }
 
@@ -129,6 +138,7 @@ static int data_hanle(uint8_t *data, uint8_t len)
         {
             motor_off_angle = data[9];
             ESP_LOGI(TAG, "motor_off_angle: %d", motor_off_angle);
+            motor_evt_set_angle(0xFF, motor_off_angle);
             set_device_motor_off_angle(motor_off_angle);
         }
 
@@ -148,6 +158,7 @@ static int data_hanle(uint8_t *data, uint8_t len)
         }
 
         update_device_parm();
+        update_advertising_data();
     }
 
     return ret;
@@ -182,10 +193,37 @@ static void data_task(void *param)
     vTaskDelete(NULL);
 }
 
+static void input_task(void *arg)
+{
+    int c;
+    while (1)
+    {
+        // 直接用 getchar() 读 USB‑Serial 输入（阻塞）
+        c = getchar();
+        if (c != EOF)
+        {
+            printf("收到输入: %c (0x%02x)\n", c, c);
+
+            switch (c)
+            {
+                case '1': motor_evt_on(); break;
+                case '0': motor_evt_off(); break;
+                
+                default:
+                {
+                    ESP_LOGE(TAG, "invalid input %c", c);
+                }
+                break;
+            }
+        }
+        vTaskDelay(10);
+    }
+}
+
 void data_task_init(void)
 {
-    update_manufacturer_data();
-
     data_evt_queue = xQueueCreate(10, sizeof(data_event_data_t));
     xTaskCreate(data_task, "data_task", 2048, NULL, 10, &data_task_handle);
+
+    xTaskCreate(input_task, "debug_input_task", 2048, NULL, 5, NULL);
 }

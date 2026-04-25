@@ -261,6 +261,16 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
     return rc;
 }
 
+void update_advertising_data(void)
+{
+    // 停止当前广播
+    ble_gap_adv_stop();
+    
+    // 重新启动广播以应用新数据
+    start_advertising();
+    
+    ESP_LOGI(TAG, "Advertising data updated");
+}
 
 /* Public functions */
 void adv_init(void) {

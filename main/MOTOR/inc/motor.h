@@ -5,7 +5,7 @@
 
 #define MOTOR_PWM_PIN     GPIO_NUM_9
 
-#define MOTOR_DEFAULT_ON_ANGLE     60
+#define MOTOR_DEFAULT_ON_ANGLE     120
 #define MOTOR_DEFAULT_OFF_ANGLE    0
 
 typedef enum {
